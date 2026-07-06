@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Hibern8 — Settings</title>
+<link rel="stylesheet" href="dashboard.css">
+<style>
+  body{padding:0}
+  .optwrap{max-width:680px;margin:0 auto;padding:28px 26px 60px}
+  .optwrap h1{font-size:22px;margin:.2em 0}
+  .optwrap h2{font-size:14px;color:var(--accent);margin:1.4em 0 .3em}
+  .optwrap p{font-size:13px;color:var(--muted);line-height:1.5;margin:.3em 0}
+  .field{margin:12px 0}
+  textarea{width:100%;min-height:150px;background:var(--chrome2);color:var(--txt);border:1px solid var(--line);border-radius:9px;padding:10px 12px;font-family:ui-monospace,Menlo,monospace;font-size:12.5px;line-height:1.6}
+  input[type=number]{background:var(--chrome2);color:var(--txt);border:1px solid var(--line);border-radius:8px;padding:8px 10px;font-size:13px;width:110px}
+  .row{display:flex;align-items:center;gap:12px;margin:10px 0}
+  .save{display:flex;align-items:center;gap:14px;margin-top:18px}
+  .status{font-size:12.5px;color:var(--good)}
+  .hint{font-size:11.5px;color:var(--faint);font-style:italic}
+</style>
+</head>
+<body>
+  <div class="optwrap">
+    <h1>💤 Hibern8 — Settings</h1>
+    <p>These preferences are stored in your browser profile on this device. Hibern8 has no servers and transmits nothing about you.</p>
+
+    <h2>Default idle threshold for Auto-snooze</h2>
+    <p>How many seconds a background tab must sit idle before Auto-snooze hibernates it. The Hibern8 Ctrl+Space panel's slider still adjusts this per session.</p>
+    <div class="row">
+      <input type="number" id="idle" min="10" max="600" step="5" value="60"> <span class="hint">seconds</span>
+    </div>
+
+    <h2>Social-media / entertainment screen-time timer</h2>
+    <p><b>Off by default.</b> When you enable it, Hibern8 counts the time you actively spend on the sites
+      listed below and reminds you at 30 minutes, then 1 hour, then every 15 minutes. It counts only the
+      focused tab while you are active, resets daily, and is tracked locally on your device.</p>
+    <label class="scope" style="font-size:13px;margin:6px 0"><input type="checkbox" id="socialEnabled"> Enable the screen-time timer</label>
+    <div class="field">
+      <textarea id="socialDomains" spellcheck="false" placeholder="facebook.com&#10;youtube.com"></textarea>
+      <div class="hint">One site per line. Subdomains match automatically. Edit freely to choose what counts.</div>
+    </div>
+
+    <h2>Privacy &amp; Safe-Hold (public-network protection)</h2>
+    <p>Safe-Hold keeps hibernated and restored tabs from loading — and holds the browser's outbound
+      traffic — until you release it, so tabs don't quietly reload on untrusted Wi‑Fi before your VPN
+      is up. Release is always <b>manual</b>. Note: the strongest protection is your VPN client's own
+      kill-switch; this is a browser-level convenience layer on top of it.</p>
+
+    <label class="scope" style="font-size:13px;margin:6px 0"><input type="checkbox" id="openStartup"> Open Hibern8 at browser startup</label>
+    <label class="scope" style="font-size:13px;margin:6px 0"><input type="checkbox" id="openAfterRestore"> Open Hibern8 after the previous session is restored</label>
+    <label class="scope" style="font-size:13px;margin:6px 0"><input type="checkbox" id="promptOnRestore"> On session restore, ask whether the imported tabs are safe to load or need a VPN first</label>
+    <label class="scope" style="font-size:13px;margin:6px 0"><input type="checkbox" id="holdPrevSession"> Hold previous-session tabs until I manually refresh them</label>
+    <label class="scope" style="font-size:13px;margin:6px 0"><input type="checkbox" id="safeHoldEngageStartup"> Engage Safe-Hold automatically at startup (hold all traffic until I release)</label>
+    <label class="scope" style="font-size:13px;margin:6px 0"><input type="checkbox" id="requireVpn"> Require me to confirm my VPN is connected before I can release the hold</label>
+    <div class="hint">A browser extension can't actually detect a VPN, so this is a manual confirmation: when enabled, releasing the hold asks you to confirm your VPN is connected.</div>
+
+    <div class="save">
+      <button class="btn primary" id="saveBtn">Save settings</button>
+      <button class="btn ghost" id="resetBtn">Reset to defaults</button>
+      <span class="status" id="status"></span>
+    </div>
+  </div>
+<script src="options.js"></script>
+</body>
+</html>

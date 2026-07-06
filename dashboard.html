@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Hibern8 Ctrl+Space</title>
+<link rel="stylesheet" href="dashboard.css">
+</head>
+<body>
+  <div class="stickytop">
+  <header class="topbar">
+    <div class="brand"><span class="logo">💤</span> Hibern8 Ctrl+Space <small>Chrome / Edge · v0.6.0</small></div>
+    <div class="memwrap">
+      <div class="metricbox">
+        <div class="big" id="dormCt">0</div><div class="cap">hibernated</div>
+      </div>
+      <div class="metricbox">
+        <div class="big" id="awakeCt">0</div><div class="cap">awake</div>
+      </div>
+      <div class="metricbox est">
+        <div class="big"><span id="estFreed">0</span><span class="unit">MB</span></div>
+        <div class="cap">≈ reclaimed (est.)</div>
+      </div>
+      <div class="metricbox est" title="Representative continuous background power avoided by hibernated tabs, with everyday equivalents">
+        <div class="big"><span id="estPower" class="outlined">0</span><span class="unit">W</span></div>
+        <div class="cap">≈ power saved (est.)</div>
+        <div class="rel" id="powerRel">hibernate tabs to start saving</div>
+      </div>
+    </div>
+  </header>
+
+  <div class="toolbar">
+    <button class="btn primary" id="snoozeAll">💤 Hibernate all except audio/video</button>
+    <button class="btn" id="muteAll" title="Mute every tab currently playing sound (all windows)">🔇 Mute all</button>
+    <label class="scope" title="After Mute all, automatically unmute a tab when you switch to it (or when it starts new audio/video while it is the active tab). Background tabs stay muted; tabs you muted by hand are left alone."><input type="checkbox" id="autoUnmute"> Auto-unmute active</label>
+    <label class="scope"><input type="checkbox" id="allWindows"> All windows</label>
+    <label class="sortwrap">Sort
+      <select id="sortSel">
+        <option value="default">Default order</option>
+        <option value="az">A → Z</option>
+        <option value="za">Z → A</option>
+      </select>
+    </label>
+    <label class="sortwrap">Appearance
+      <select id="themeSel">
+        <option value="auto">Auto (match system)</option>
+        <option value="dark">Dark</option>
+        <option value="light">Light</option>
+      </select>
+    </label>
+    <label class="sortwrap">Palette
+      <select id="paletteSel">
+        <option value="">Theme default</option>
+        <option value="205">Ocean</option>
+        <option value="150">Forest</option>
+        <option value="28">Sunset</option>
+        <option value="320">Berry</option>
+        <option value="275">Twilight</option>
+        <option value="0">Crimson</option>
+        <option value="48">Goldenrod</option>
+      </select>
+    </label>
+    <label class="sortwrap">Color
+      <input type="range" id="hueSlider" class="hue" min="0" max="360" step="1" title="Tint accents, icons &amp; the toolbar icon across the ROYGBIV spectrum (text stays high-contrast)">
+      <input type="range" id="satSlider" class="sat" min="0" max="100" step="1" value="90" title="Saturation — slide to 0 for greyscale">
+      <button class="btn ghost" id="hueReset" title="Reset color to theme default" style="padding:4px 9px">↺</button>
+    </label>
+    <label class="sortwrap">Font
+      <select id="fontSel">
+        <option value="system">System</option>
+        <option value="robotic">Robotic</option>
+        <option value="refined">Refined</option>
+        <option value="exact">Exact</option>
+        <option value="dreamy">Dreamy</option>
+        <option value="bubble">Bubble</option>
+        <option value="marshmallow">Marshmallow</option>
+      </select>
+    </label>
+    <div class="spacer"></div>
+    <div class="seg" id="modeSeg">
+      <button data-m="manual" class="on">Manual</button>
+      <button data-m="auto">Auto-snooze</button>
+    </div>
+    <label class="idlewrap" id="idleWrap">idle ≥
+      <input type="range" id="idleRange" min="10" max="180" step="10" value="60">
+      <span class="val"><span id="idleVal">60</span>s</span>
+    </label>
+    <button class="btn ghost" id="suspendBtn" title="Suspend session: hold all page traffic until you release (public-network / pre-VPN protection)">🛡 Suspend session</button>
+    <button class="btn ghost" id="popoutBtn" title="Open Hibern8 Ctrl+Space in its own standalone window">⧉ Open in window</button>
+    <button class="btn ghost" id="helpBtn" title="Help &amp; about">❔ Help</button>
+    <button class="btn ghost" id="settingsBtn" title="Settings — idle default, screen-time timer &amp; Safe-Hold">⚙ Settings</button>
+    <button class="btn ghost" id="refreshBtn"><span class="ri">↻</span> Refresh</button>
+  </div>
+  </div>
+
+  <div class="incognote holdnote" id="holdNote" hidden>
+    <span id="holdMsg">🔒 <b>Traffic held.</b></span>
+    <span class="incogbtns" id="holdBtns"></span>
+  </div>
+
+  <div class="incognote" id="incogNote" hidden>
+    <span>🔒 <b>Private/incognito tabs are hidden from Hibern8 Ctrl+Space</b> until you allow it. To let Mute&nbsp;all / Hibernate&nbsp;all and the private audio-video section reach them, open the extension's details and turn on <b>Allow in Incognito</b> (Edge: InPrivate).</span>
+    <span class="incogbtns">
+      <button class="btn ghost" id="incogOpen">Open extensions page</button>
+      <button class="btn" id="incogDismiss">Dismiss</button>
+    </span>
+  </div>
+
+  <div class="incognote socialnote" id="socialNote" hidden>
+    <span>⏰ <span id="socialMsg"></span> Time for a break?</span>
+    <span class="incogbtns">
+      <button class="btn" id="socialReset">Reset timer</button>
+      <button class="btn ghost" id="socialDismiss">Dismiss</button>
+    </span>
+  </div>
+
+
+  <div class="verify">
+    <b>Proof:</b> open the browser's own Task Manager — <kbd>Shift</kbd>+<kbd>Esc</kbd> (Chrome) /
+    <kbd>⋯</kbd>→ Browser task manager (Edge) — and watch the real <b>Memory footprint</b> of hibernated tabs
+    collapse. The estimate above is illustrative; Task Manager shows the true numbers.
+  </div>
+
+  <main class="view" id="view"></main>
+
+  <footer class="foot">
+    Uses the browser's native <code>chrome.tabs.discard()</code> — the same mechanism behind Chrome Memory Saver,
+    driven by your rules. Sensitive sites, audible tabs, and pinned tabs are skipped automatically.
+    Sections mirror your browser tab groups; audio-playing tabs surface at the top.
+  </footer>
+
+  <div class="log" id="log"></div>
+
+  <div class="helpoverlay" id="helpOverlay" hidden>
+    <div class="helpcard" role="dialog" aria-modal="true" aria-label="Hibern8 Ctrl+Space help and about">
+      <button class="helpclose" id="helpClose" title="Close">✕</button>
+      <h2>Hibern8 Ctrl+Space — Help &amp; About</h2>
+      <p class="muted">Reclaim browser memory with user-controlled tab hibernation. This panel is your quick reference.</p>
+      <p class="privacyline"><b>🔒 No information leaves your device through Hibern8 Ctrl+Space.</b> It has no servers and sends nothing about you, your tabs, or your browsing anywhere. Everything runs locally in your browser profile.</p>
+
+      <h3>What it does</h3>
+      <p>Hibern8 Ctrl+Space uses the browser's own native tab-discard to unload idle tabs and return their memory to your system, while keeping you in control. Hibernated tabs reload from source when you return to them — the design relies on cheap, fast bandwidth instead of hoarding tab data in local memory.</p>
+
+      <h3>The controls</h3>
+      <ul>
+        <li><b>💤 Hibernate all except audio/video</b> — sweeps every window, sparing tabs playing sound, plus pinned and active tabs.</li>
+        <li><b>🔇 Mute all</b> — silences every sounding tab across all windows.</li>
+        <li><b>Auto-unmute active</b> — after Mute all, the tab you switch to (or that starts new audio) unmutes itself; the background stays muted. Tabs you muted by hand are left alone.</li>
+        <li><b>🪟 Windows</b> — hibernate or explore any window, even background ones. Each window's "Explore tabs" lists the active tab first, shaded by state (active / awake / hibernated).</li>
+        <li><b>🔊 Audio / Video Tabs</b> — every sounding tab, pinned to the top, with Go and Mute.</li>
+        <li><b>Sort / Appearance</b> — alphabetize the lists, and choose Auto / Light / Dark.</li>
+        <li><b>↻ Refresh</b> — re-reads tab state with a brief visual cue.</li>
+        <li><b>⌨ Ctrl+Space</b> — open Hibern8 Ctrl+Space from anywhere. Change or reassign the shortcut at <code>chrome://extensions/shortcuts</code> (Chrome/Edge).</li>
+      </ul>
+
+      <h3>Prove the memory savings</h3>
+      <p>Open your browser's task manager — <kbd>Shift</kbd>+<kbd>Esc</kbd> in Chrome/Edge, or <kbd>about:performance</kbd> in Firefox — and watch the memory of hibernated tabs collapse. The in-app number is an estimate; the task manager is the truth.</p>
+
+      <h3>Private / incognito tabs</h3>
+      <p>Browsers hide private windows from every extension by default. To let Mute all / Hibernate all and the private audio-video section reach them, enable <b>Allow in Incognito</b> (Chrome), <b>Allow in InPrivate</b> (Edge), or <b>Run in Private Windows</b> (Firefox) in the extension's details. Private tabs are never listed in the normal sections.</p>
+
+      <h3>Design principles</h3>
+      <p>Hibern8 Ctrl+Space is built on a few simple ideas: <b>you stay in control</b> (nothing is hibernated against your wishes — active, pinned, and audio/video tabs are always spared); <b>least-privilege and local-only</b> (it asks for the minimum access, keeps everything in your browser profile, and sends nothing anywhere); <b>opt-in for anything sensitive</b> (the screen-time timer and Safe-Hold are off until you turn them on); <b>no page access</b> (Hibern8 Ctrl+Space never reads or edits the content of your web pages); <b>lean on cheap bandwidth, not hoarded memory</b> (a hibernated tab reloads from its own source on wake rather than holding RAM); and <b>honest estimates</b> (the in-app memory and power figures are illustrative — your browser's task manager shows the true numbers).</p>
+
+      <h3>Related research</h3>
+      <p>Independent benchmarks and browser-vendor analyses consistently find that hibernating idle tabs cuts memory, background CPU, and — by extension — power, most noticeably on laptop battery life. Hibern8 Ctrl+Space layers user-directed control on top of Chrome's native tab-discard:</p>
+      <ul>
+        <li><b>Memory:</b> Chrome's built-in Memory Saver discards inactive tabs for roughly a <b>30–40% memory reduction</b> in typical multi-tab use; 30–50+ open tabs can otherwise hold <b>2–6 GB</b> of RAM, most of which hibernation returns to the OS.</li>
+        <li><b>CPU &amp; battery:</b> lower sustained CPU (on the order of <b>~29%</b> in some 2026 benchmarks) yields measurable battery extension — roughly <b>36–48 minutes</b> over multi-hour sessions.</li>
+        <li><b>Per tab:</b> proactive, timer-based suspension can reclaim <b>90–95%</b> of an individual tab's working set before the system is under memory pressure — more than reactive, wait-for-low-memory approaches.</li>
+        <li><b>Native vs. extension:</b> native Memory Saver is automatic but reactive and opaque; user-controlled tools add proactive, window-level, audio-aware bulk actions and transparent metrics. Hibern8 Ctrl+Space uses the same native discard API while closing those gaps, and points you to the task manager for ground-truth numbers.</li>
+      </ul>
+      <p>The benefit also ripples outward: <b>you</b> save battery, heat, and electricity; <b>the sites you leave open</b> stop being polled by idle tabs, easing load on their servers; and <b>network &amp; data-center infrastructure</b> carries less always-on background chatter.</p>
+
+      <h4>How the estimate is calculated (worked example)</h4>
+      <p>Every figure here comes from three inputs you can check yourself — nothing is hidden:</p>
+      <ul>
+        <li><b>Per idle tab ≈ 0.5 W</b> saved — a representative continuous background draw (timers, ads, analytics, scripts) that stops when the tab is discarded.</li>
+        <li><b>Active use ≈ 6 hours/day</b> — the machine isn't on 24/7, so savings only count while you're using it.</li>
+        <li><b>The formula:</b> <code>watts saved = idle tabs × 0.5 W</code>, then <code>kWh/year = watts × 6 h/day × 365 ÷ 1000</code>.</li>
+      </ul>
+      <p>Worked out for a few everyday tab counts (these are the <i>idle</i> tabs Hibern8 Ctrl+Space hibernates — your active tab and any media tab stay awake):</p>
+      <table class="scale">
+        <tr><th>Idle tabs hibernated</th><th>Watts saved</th><th>Per day</th><th>≈ Energy / year</th><th>Everyday equivalent</th></tr>
+        <tr><td>5 tabs</td><td>2.5 W</td><td>15 Wh</td><td>~5.5 kWh</td><td>~455 phone charges · ~18 EV miles</td></tr>
+        <tr><td>10 tabs</td><td>5.0 W</td><td>30 Wh</td><td>~11 kWh</td><td>~900 phone charges · ~37 EV miles</td></tr>
+        <tr><td>15 tabs</td><td>7.5 W</td><td>45 Wh</td><td>~16 kWh</td><td>~1,370 phone charges · ~55 EV miles</td></tr>
+      </table>
+      <p>Reading the 10-tab row step by step: 10 × 0.5 W = <b>5 W</b>; 5 W × 6 h = <b>30 Wh/day</b>; 30 Wh × 365 = <b>~11 kWh/year</b>; at 12 Wh per phone charge that's <b>~900 charges</b>, and at ~0.30 kWh per mile, <b>~37 EV miles</b>.</p>
+      <p><b>Plus media use:</b> a playing video or music tab is always spared (never hibernated), and it alone typically draws <b>~2–4 W</b> while decoding — often more than several idle tabs combined. Hibern8 Ctrl+Space keeps that tab smooth and frees the idle tabs around it. So while a movie plays in one window, hibernating your other 5–15 idle tabs still delivers the savings above; and when you're finished watching, closing or hibernating that media tab is the single biggest cut of all.</p>
+
+      <h4>Scaled across society</h4>
+      <p>Taking the <b>10-tab case above (~11 kWh per person per year)</b> as one "typical user," the same small saving multiplies into real, macro-scale energy (illustrative, assuming the model above):</p>
+      <table class="scale">
+        <tr><th>Adoption</th><th>≈ Energy / year</th><th>Everyday equivalent</th></tr>
+        <tr><td>1 person</td><td>~11 kWh</td><td>~35 EV miles</td></tr>
+        <tr><td>100 (small office)</td><td>~1.1 MWh</td><td>~3,600 EV miles</td></tr>
+        <tr><td>10,000 (a small town)</td><td>~110 MWh</td><td>~10 U.S. homes' yearly power</td></tr>
+        <tr><td>100,000 (a mid-size city)</td><td>~1.1 GWh</td><td>~100 homes · ~3.7M EV miles</td></tr>
+        <tr><td>1,000,000 (a large metro)</td><td>~11 GWh</td><td>~1,000 homes</td></tr>
+        <tr><td>10,000,000 (a state / region)</td><td>~110 GWh</td><td>~10,000 homes</td></tr>
+        <tr><td>100,000,000 (a country / large region)</td><td>~1.1 TWh</td><td>~100,000 homes · ~3.7B EV miles</td></tr>
+      </table>
+      <p class="muted">These are order-of-magnitude illustrations, not a certified energy audit — real savings depend on device efficiency, how long tabs stay hibernated, and how often the machine is on. Figures on this page draw from developer documentation, public benchmarks, and independent analyses. The point is directional: a fraction of a watt per tab, multiplied across many tabs and many people, adds up to city- and country-scale energy.</p>
+
+      <h3>Public-network privacy — Safe-Hold</h3>
+      <p><b>🛡 Suspend session</b> holds all of the browser's outbound page traffic, <b>pauses any in-progress downloads</b> (and new ones started while held, resuming them on release), and keeps tabs from loading until you release it — so nothing quietly reloads or keeps transferring on airport or café Wi‑Fi before your VPN is up. Release is always <b>manual</b>. In ⚙ Settings you can choose when Hibern8 Ctrl+Space opens (at startup and/or after the previous session is restored), have it <b>prompt on session restore</b> ("are these tabs safe to load, or do you need a VPN first?"), hold previous-session tabs until you manually refresh them, engage Safe-Hold automatically at startup, and <b>require you to confirm your VPN is connected before releasing</b>. (A browser extension can't actually detect a VPN, so this is a manual confirmation — releasing asks you to confirm your VPN is up.) The honest caveat: the strongest protection is your VPN client's own kill-switch, which blocks every app system-wide — Safe-Hold is a browser-level convenience layer on top of that, not a replacement.</p>
+
+      <h3>Development &amp; security</h3>
+      <p>Hibern8 Ctrl+Space is built least-privilege and local-only. Its pages run under a <b>strict Content-Security-Policy</b> (<code>default-src 'self'; script-src 'self'; object-src 'none'; connect-src 'self'; base-uri 'none'; frame-ancestors 'none'; form-action 'none'</code>) that blocks any inline or remotely-hosted script from executing; there is no remote code or <code>eval</code>, no third-party network calls, and all dynamic text is HTML-escaped to prevent script or HTML injection. Any URL Hibern8 Ctrl+Space navigates to is validated to http/https only. An <b>injection watchdog</b> also listens for CSP violations: if a script injection is ever blocked, Hibern8 Ctrl+Space warns you in-panel, names the source, and raises a notification urging an antivirus scan (extensions can't signal antivirus directly, so this alert is how a scan is prompted). Hibern8 Ctrl+Space requests <b>no host permissions and never reads or edits the content of your web pages</b>. <b>Your preferences and saved data stay in your browser profile on this device</b> (in local extension storage) — Hibern8 Ctrl+Space has no servers and transmits nothing about you. Two honest clarifications: favicons come from your browser's own local cache (Chrome/Edge) or the site's icon URL (Firefox), and waking a hibernated tab reloads that page from its own source over the network — that's the tab's normal traffic, not Hibern8 Ctrl+Space sending your data anywhere. Provided as-is, without warranty; not a certified or independently audited release.</p>
+
+      <h3>Privacy &amp; security statement</h3>
+      <p>The short version: <b>no information leaves your device through Hibern8 Ctrl+Space</b> — no servers, no analytics, no ads, no third-party code, and no data collected, transmitted, or sold. Preferences and any saved data stay in your browser profile on this device. The full statement (local-storage inventory, per-permission justification, security measures, and honest limitations) ships with the extension as <code>PRIVACY-AND-SECURITY.md</code> and is linked from the store listing. <a href="PRIVACY-AND-SECURITY.md" target="_blank" rel="noopener">Open the full statement →</a></p>
+
+      <h3>License (EULA)</h3>
+      <p>© 2026 <b>Wildheart Holdings LLC</b>. <b>Free to use</b> — for your personal use, or for an organization across the devices it owns or manages (no per-seat or per-device limit). Please just <b>don't redistribute, resell, or repackage</b> it. The Software is provided <b>as-is, without warranty of any kind</b>, and Licensor is not liable for any damages arising from its use. Full terms ship in the <code>EULA.md</code> file with this extension.</p>
+
+      <h3>Feedback</h3>
+      <p>From <b>Wildheart Holdings LLC</b>, provided as-is. Formal certification, security review, and compliance attestation are separate professional services performed only under a written working agreement and billed to the requesting party. Likewise, if any claim, statement, estimate, or figure is requested to be proven or validated through a study, benchmark, or test, that study is <b>billed to and paid for by the requesting party in advance</b> and is performed only after payment. While there is no implied warranty, written or otherwise, if you find an issue or have a request you're welcome to report it through the web store listing you installed from.</p>
+      <button class="btn primary" id="helpCloseBtn">Got it — start using Hibern8 Ctrl+Space</button>
+    </div>
+  </div>
+
+<script src="dashboard.js"></script>
+</body>
+</html>

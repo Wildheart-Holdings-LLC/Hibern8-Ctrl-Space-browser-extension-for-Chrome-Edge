@@ -1,0 +1,29 @@
+{
+  "manifest_version": 3,
+  "name": "Hibern8 Ctrl+Space",
+  "version": "0.6.0",
+  "description": "Hibernate idle tabs to free real RAM using the browser's native tab-discard. For Chrome and Edge.",
+  "permissions": ["tabs", "tabGroups", "favicon", "storage", "bookmarks", "alarms", "idle", "notifications", "declarativeNetRequest", "downloads"],
+  "incognito": "spanning",
+  "background": {
+    "service_worker": "background.js"
+  },
+  "icons": { "16": "icon16.png", "32": "icon32.png", "48": "icon48.png", "128": "icon128.png" },
+  "action": {
+    "default_title": "Open Hibern8 Ctrl+Space",
+    "default_icon": { "16": "icon16.png", "32": "icon32.png", "48": "icon48.png", "128": "icon128.png" }
+  },
+  "commands": {
+    "_execute_action": {
+      "suggested_key": { "default": "Ctrl+Space", "mac": "MacCtrl+Space" },
+      "description": "Open Hibern8 Ctrl+Space"
+    }
+  },
+  "options_ui": {
+    "page": "options.html",
+    "open_in_tab": true
+  },
+  "content_security_policy": {
+    "extension_pages": "default-src 'self'; script-src 'self'; object-src 'none'; img-src 'self' data:; style-src 'self' 'unsafe-inline'; connect-src 'self'; base-uri 'none'; frame-ancestors 'none'; form-action 'none'"
+  }
+}
